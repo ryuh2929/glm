@@ -1074,7 +1074,6 @@ def _build_node_sql(op: str, inputs: List[str], params: Dict[str, Any]) -> str:
 #     executor dispatches them to ``SeerToolbox`` methods.
 
 ANALYSIS_OPS: set = {
-    "basic_glm",
     # SURVIVAL analysis (lifelines) — PARQUET wrappers that read the cohort from
     # the node's first input, derive time/event/group columns from it BEFORE the
     # real lifelines call, and export the result table as the node's parquet out.
@@ -1409,14 +1408,6 @@ def get_output_schema(op: str) -> Optional[Dict[str, Any]]:
         if schema:
             return schema
     except Exception:
-        pass
-    # The provided sample is a package named tool_sample, not production's tool.
-    try:
-        from . import tool_desc as _local_td
-        schema = _local_td.get_output_schema(op)
-        if schema:
-            return schema
-    except ImportError:
         pass
     return (load_seer_tool_specs().get(op) or {}).get("output_schema")
 
@@ -5410,19 +5401,6 @@ class SeerToolbox:
         self._suppress_export = False
 
     # ── individual tools ────────────────────────────────────────────────
-    def basic_glm(
-        self, outcome_column: str, covariates: Any, family: str = "gaussian",
-        categorical: Any = None, reference_levels: Any = None,
-        missing: str = "raise", max_iter: int = 100, tolerance: float = 1e-8,
-        where: str = "", label: str = "", source: str = "seer",
-    ) -> str:
-        """Submission GLM: explicit types, missing policy and diagnostics."""
-        from .glm import run_basic_glm
-        return run_basic_glm(
-            self, outcome_column, covariates, family, categorical, reference_levels,
-            missing, max_iter, tolerance, where, label, source,
-        )
-
     def seer_schema(self, keyword: str = "") -> str:
         rows = self.con.execute("DESCRIBE seer").fetchall()
         kw = (keyword or "").strip().lower()
@@ -14552,29 +14530,6 @@ class SeerToolbox:
     # ── provider-neutral tool specs ─────────────────────────────────────
     def specs(self) -> List[Dict[str, Any]]:
         return [
-            {
-                "name": "basic_glm",
-                "description": "Basic Gaussian, Bernoulli or Poisson GLM with explicit input validation.",
-                "parameters": {
-                    "type": "object",
-                    "required": ["outcome_column", "covariates"],
-                    "properties": {
-                        "outcome_column": {"type": "string"},
-                        "covariates": {"type": "array", "items": {"type": "string"}},
-                        "family": {"type": "string", "enum": ["gaussian", "binomial", "poisson"]},
-                        "categorical": {"type": "array", "items": {"type": "string"}},
-                        "reference_levels": {"type": "object"},
-                        "missing": {"type": "string", "enum": ["raise", "drop"]},
-                        "max_iter": {"type": "integer", "minimum": 1},
-                        "tolerance": {"type": "number", "exclusiveMinimum": 0},
-                        "where": {"type": "string"},
-                        "source": {"type": "string"},
-                        "label": {"type": "string"},
-                    },
-                    "additionalProperties": False,
-                },
-                "invoke": self.basic_glm,
-            },
             {
                 "name": "seer_schema",
                 "description": (
