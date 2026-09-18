@@ -6,11 +6,15 @@ Gaussian·Binomial·Poisson GLM을 실행하는 독립 함수다. 입력 조건�
 
 검증 환경은 Python 3.14.5 / Windows다. 이 폴더에서 다음 명령을 실행한다.
 
-```powershell
+```bash
+cd NewGLMAnalysisTool
+
 python -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python run_example.py
-.\.venv\Scripts\python -m unittest -v test_glm.py
+source .venv/bin/activate
+
+python -m pip install -r requirements.txt
+python run_example.py
+python -m unittest -v test_glm.py
 ```
 
 macOS/Linux에서는 `.venv/bin/python`을 사용한다. 예제 실행 시 이 폴더의 `sample_data.csv`와 `sample_output` 내 예제 결과 파일을 다시 생성한다.
