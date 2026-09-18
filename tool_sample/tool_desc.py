@@ -2453,8 +2453,6 @@ description: List[Dict[str, Any]] = [
 
 ]
 _apply_output_schemas(description)
-from .glm_desc import description as _basic_glm_description
-description.append(_basic_glm_description)
 
 # ---------------------------------------------------------------------------
 # Lookup + rendering helpers
